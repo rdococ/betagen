@@ -42,7 +42,7 @@ local selectorDef = {
 }
 local eroderDef = {
     offset = 1,
-    scale = 8,
+    scale = 5,
     spread = {x = 120, y = 180, z = 120},
     octaves = 6,
     persistence = 0.5,

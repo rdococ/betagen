@@ -7,7 +7,7 @@ local posString = minetest.pos_to_string
 local baseHeightDef = {
     offset = 0,
     scale = 6,
-    spread = {x = 500, y = 500, z = 500},
+    spread = {x = 2000, y = 2000, z = 2000},
     octaves = 8,
     persistence = 0.5,
     lacunarity = 2,
@@ -15,8 +15,8 @@ local baseHeightDef = {
 }
 local lowNoiseDef = {
     offset = 0,
-    scale = 64,
-    spread = {x = 250, y = 400, z = 250},
+    scale = 54,
+    spread = {x = 200, y = 400, z = 200},
     octaves = 7,
     persistence = 0.5,
     lacunarity = 2,
@@ -24,30 +24,30 @@ local lowNoiseDef = {
 }
 local highNoiseDef = {
     offset = 0,
-    scale = 64,
-    spread = {x = 250, y = 400, z = 250},
+    scale = 54,
+    spread = {x = 200, y = 400, z = 200},
     octaves = 7,
     persistence = 0.5,
     lacunarity = 2,
     seed = 225252
 }
 local selectorDef = {
-    offset = 0.5,
-    scale = 12,
+    offset = 0.25,
+    scale = 6,
     spread = {x = 60, y = 120, z = 60},
     octaves = 5,
     persistence = 0.5,
     lacunarity = 2,
     seed = 767567
 }
-local eroderDef = {
-    offset = 1,
-    scale = 5,
-    spread = {x = 120, y = 180, z = 120},
-    octaves = 6,
+local scalerDef = {
+    offset = 0.8,
+    scale = 1,
+    spread = {x = 400, y = 400, z = 400},
+    octaves = 5,
     persistence = 0.5,
     lacunarity = 2,
-    seed = 229194
+    seed = 345112
 }
 local cavesADef = {
     offset = 0,
@@ -86,17 +86,11 @@ local caveDeadendsDef = {
     seed = 9918281
 }
 
-local function smootherstep(x)
-    return x * x * x * (x * (x * 6 - 15) + 10)
-end
 local function clamp(x, a, b)
     return min(max(x, a), b)
 end
 local function lerp(x, y, t)
     return x + (y - x) * t
-end
-local function sigmoid(x)
-    return x / sqrt(1 + x^2)
 end
 
 minetest.register_on_generated(function (minp, maxp, seed)
@@ -114,7 +108,8 @@ minetest.register_on_generated(function (minp, maxp, seed)
     local lowNoiseMap = minetest.get_perlin_map(lowNoiseDef, esize):get_3d_map_flat(emin)
     local highNoiseMap = minetest.get_perlin_map(highNoiseDef, esize):get_3d_map_flat(emin)
     local selectorMap = minetest.get_perlin_map(selectorDef, esize):get_3d_map_flat(emin)
-    local eroderMap = minetest.get_perlin_map(eroderDef, esize):get_3d_map_flat(emin)
+    local scalerMap = minetest.get_perlin_map(scalerDef, esize):get_2d_map(emin2d)
+    
     local cavesAMap = minetest.get_perlin_map(cavesADef, esize):get_3d_map_flat(emin)
     local cavesBMap = minetest.get_perlin_map(cavesBDef, esize):get_3d_map_flat(emin)
     local caveDeadendsMap = minetest.get_perlin_map(caveDeadendsDef, esize):get_3d_map_flat(emin)
@@ -124,7 +119,8 @@ minetest.register_on_generated(function (minp, maxp, seed)
         for z = minp.z, maxp.z do
             for y = minp.y, maxp.y do
                 local index = area:index(x, y, z)
-                local density = lerp(lowNoiseMap[index], highNoiseMap[index], clamp(selectorMap[index], 0, 1)) - (y * (y < 0 and 4 or 1) - baseHeightMap[z - minp.z + 1][x - minp.x + 1]) * max(eroderMap[index], 1)
+                local base, scaler = baseHeightMap[z - minp.z + 1][x - minp.x + 1], scalerMap[z - minp.z + 1][x - minp.x + 1]
+                local density = lerp(lowNoiseMap[index], highNoiseMap[index], clamp(selectorMap[index], 0, 1)) * clamp(scaler, 0.6, 1) - (y * (y < 0 and 4 or 1) - base) - max(y - 54, 0) * 2
                 
                 local node
                 if density >= 0 then

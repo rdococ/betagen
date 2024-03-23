@@ -43,8 +43,8 @@ local selectorDef = {
 local scalerDef = {
     offset = 0.8,
     scale = 1,
-    spread = {x = 400, y = 400, z = 400},
-    octaves = 5,
+    spread = {x = 100, y = 100, z = 100},
+    octaves = 3,
     persistence = 0.5,
     lacunarity = 2,
     seed = 345112
